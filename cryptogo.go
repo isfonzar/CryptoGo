@@ -24,6 +24,11 @@ func main() {
 }
 
 func encrypt() {
+
+	if _, err := os.Stat("teste.txt"); os.IsNotExist(err) {
+		panic("File not found")
+	}
+
 	plaintext, err := ioutil.ReadFile("teste.txt")
 
 	if err != nil {
