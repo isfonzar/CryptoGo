@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"fmt"
 	"crypto/sha1"
+	"encoding/hex"
 )
 
 func main() {
@@ -36,29 +37,27 @@ func encrypt() {
 	}
 
 	key := []byte("teste123")
-	salt := []byte("salt")
+	nonce := make([]byte, 12)
 
-	dk := pbkdf2.Key(key, salt, 4096, 32, sha1.New)
+	// Randomizing the nonce
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		panic(err.Error())
+	}
+
+	dk := pbkdf2.Key(key, nonce, 4096, 32, sha1.New)
 
 	block, err := aes.NewCipher(dk)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 
-	// The IV needs to be unique, but not secure. Therefore it's common to
-	// include it at the beginning of the ciphertext.
-	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
-	iv := ciphertext[:aes.BlockSize]
-	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		panic(err)
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
 	}
 
-	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
-
-	// It's important to remember that ciphertexts must be authenticated
-	// (i.e. by using crypto/hmac) as well as being encrypted in order to
-	// be secure. @todo
+	ciphertext := aesgcm.Seal(nil, nonce, plaintext, nil)
+	ciphertext = append(ciphertext, nonce...)
 
 	// create a new file for saving the encrypted data.
 	f, err := os.Create("teste.enc")
@@ -79,34 +78,34 @@ func decrypt() {
 	}
 
 	key := []byte("teste123")
-	salt := []byte("salt")
+	salt := ciphertext[len(ciphertext)-12:]
+	str := hex.EncodeToString(salt)
 
-	dk := pbkdf2.Key(key, salt, 4096, 32, sha1.New)
+	nonce, err := hex.DecodeString(str)
+
+	dk := pbkdf2.Key(key, nonce, 4096, 32, sha1.New)
 
 	block, err := aes.NewCipher(dk)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 
-	// The IV needs to be unique, but not secure. Therefore it's common to
-	// include it at the beginning of the ciphertext.
-	if len(ciphertext) < aes.BlockSize {
-		panic("ciphertext too short")
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
 	}
-	iv := ciphertext[:aes.BlockSize]
-	ciphertext = ciphertext[aes.BlockSize:]
 
-	stream := cipher.NewCFBDecrypter(block, iv)
-
-	// XORKeyStream can work in-place if the two arguments are the same.
-	stream.XORKeyStream(ciphertext, ciphertext)
+	plaintext, err := aesgcm.Open(nil, nonce, ciphertext[:len(ciphertext)-12], nil)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	// create a new file for saving the encrypted data.
 	f, err := os.Create("teste.dec")
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = io.Copy(f, bytes.NewReader(ciphertext))
+	_, err = io.Copy(f, bytes.NewReader(plaintext))
 	if err != nil {
 		panic(err.Error())
 	}
