@@ -25,6 +25,8 @@ CryptoGo is on beta. Pull Requests [are welcome](https://github.com/isfonzar/Cry
 - Fast encryption and decryption processes
 - Uses [filecrypt](https://github.com/isfonzar/filecrypt) libs
 - Galois/Counter Mode (GCM) encryption (Extra secure, harder to bruteforce)
+- Encrypts files so they can't be read unless the decrypter is used
+- Protects your files with a password
 
 ## Installation
 
