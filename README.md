@@ -1,4 +1,13 @@
-# CryptoGo ![Language Badge](https://img.shields.io/badge/Language-Go-blue.svg) ![Go Report](https://goreportcard.com/badge/github.com/isfonzar/CryptoGo) ![License Badge](https://img.shields.io/badge/License-MIT-blue.svg) ![Status Badge](https://img.shields.io/badge/Status-Beta-brightgreen.svg)
+<p align="center"><img src="https://cdn.rawgit.com/isfonzar/CryptoGo/c5712336/logo.jpg"></p>
+
+<p align="center">
+<a href="https://github.com/isfonzar/CryptoGo"><img src="https://img.shields.io/badge/Language-Go-blue.svg" alt="Language"></a>
+<a href="https://goreportcard.com/report/github.com/isfonzar/CryptoGo"><img src="https://goreportcard.com/badge/github.com/isfonzar/CryptoGo" alt="GoReportCard"></a>
+<a href="https://github.com/isfonzar/CryptoGo/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
+<a href="https://github.com/isfonzar/CryptoGo/releases"><img src="https://img.shields.io/badge/Status-Beta-brightgreen.svg" alt="Status"></a>
+</p>
+
+## About CryptoGo
 
 CryptoGo is a simple file encrypter for your day-to-day needs.
 
