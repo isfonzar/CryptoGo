@@ -3,9 +3,9 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/isfonzar/filecrypt"
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
-	"github.com/isfonzar/filecrypt"
 )
 
 func main() {
