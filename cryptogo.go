@@ -1,42 +1,101 @@
 package main
 
 import (
-	"os"
 	"bytes"
-	"io"
-	"io/ioutil"
-	"crypto/cipher"
 	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
-	"golang.org/x/crypto/pbkdf2"
-	"fmt"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
+	"golang.org/x/crypto/pbkdf2"
+	"io"
+	"io/ioutil"
+	"os"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 func main() {
 
-	fmt.Println("Encrypting")
-	encrypt()
+	function := os.Args[1]
 
-	fmt.Println("Decrypting")
-	decrypt()
+	switch function {
+	case "encrypt":
+		encryptHandle()
+	case "decrypt":
+		decryptHandle()
+	default:
+		fmt.Println("Run CryptoGo encrypt to encrypt a file, and CryptoGo decrypt to decrypt a file.")
+		os.Exit(1)
+	}
 
 }
 
-func encrypt() {
+func encryptHandle() {
 
-	if _, err := os.Stat("teste.txt"); os.IsNotExist(err) {
+	file := os.Args[2]
+
+	if !validateFile(file) {
 		panic("File not found")
 	}
 
-	plaintext, err := ioutil.ReadFile("teste.txt")
+	fmt.Print("Enter password: ")
+	password, _ := terminal.ReadPassword(0)
+	fmt.Print("\nConfirm password: ")
+	password2, _ := terminal.ReadPassword(0)
+
+	if !validatePassword(password, password2) {
+		panic("Passwords do not match")
+	}
+
+	fmt.Println("\nEncrypting...")
+	encrypt(file, password)
+	fmt.Println("\nFile successfully protected")
+
+}
+
+func decryptHandle() {
+
+	file := os.Args[2]
+
+	if !validateFile(file) {
+		panic("File not found")
+	}
+
+	fmt.Print("Enter password: ")
+	password, _ := terminal.ReadPassword(0)
+
+	fmt.Println("\nDecrypting...")
+	decrypt(file, password)
+	fmt.Println("\nFile successfully decrypted.")
+
+}
+
+func validatePassword(password1 []byte, password2 []byte) bool {
+	if !bytes.Equal(password1, password2) {
+		return false
+	}
+
+	return true
+}
+
+func validateFile(file string) bool {
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+func encrypt(file string, password []byte) {
+
+	plaintext, err := ioutil.ReadFile(file)
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	key := []byte("teste123")
+	key := password
 	nonce := make([]byte, 12)
 
 	// Randomizing the nonce
@@ -60,7 +119,7 @@ func encrypt() {
 	ciphertext = append(ciphertext, nonce...)
 
 	// create a new file for saving the encrypted data.
-	f, err := os.Create("teste.enc")
+	f, err := os.Create(file)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -70,15 +129,15 @@ func encrypt() {
 	}
 }
 
-func decrypt() {
-	ciphertext, err := ioutil.ReadFile("teste.enc")
+func decrypt(file string, password []byte) {
+	ciphertext, err := ioutil.ReadFile(file)
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	key := []byte("teste123")
-	salt := ciphertext[len(ciphertext)-12:]
+	key := password
+	salt := ciphertext[len(ciphertext) - 12:]
 	str := hex.EncodeToString(salt)
 
 	nonce, err := hex.DecodeString(str)
@@ -95,13 +154,13 @@ func decrypt() {
 		panic(err.Error())
 	}
 
-	plaintext, err := aesgcm.Open(nil, nonce, ciphertext[:len(ciphertext)-12], nil)
+	plaintext, err := aesgcm.Open(nil, nonce, ciphertext[:len(ciphertext) - 12], nil)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	// create a new file for saving the encrypted data.
-	f, err := os.Create("teste.dec")
+	f, err := os.Create(file)
 	if err != nil {
 		panic(err.Error())
 	}
