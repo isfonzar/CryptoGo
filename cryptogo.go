@@ -61,19 +61,24 @@ func encryptHandle() {
 		panic("File not found")
 	}
 
-	fmt.Print("Enter password: ")
-	password, _ := terminal.ReadPassword(0)
-	fmt.Print("\nConfirm password: ")
-	password2, _ := terminal.ReadPassword(0)
-
-	if !validatePassword(password, password2) {
-		panic("Passwords do not match")
-	}
+	password := getPassword()
 
 	fmt.Println("\nEncrypting...")
 	filecrypt.Encrypt(file, password)
 	fmt.Println("\nFile successfully protected")
 
+}
+
+func getPassword() []byte {
+	fmt.Print("Enter password: ")
+	password, _ := terminal.ReadPassword(0)
+	fmt.Print("\nConfirm password: ")
+	password2, _ := terminal.ReadPassword(0)
+	if !validatePassword(password, password2) {
+		fmt.Print("\nPasswords do not match. Please try again.\n")
+		return getPassword()
+	}
+	return password
 }
 
 func decryptHandle() {
